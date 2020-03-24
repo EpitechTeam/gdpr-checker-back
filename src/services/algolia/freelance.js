@@ -2,11 +2,18 @@ const algoliasearch = require('algoliasearch');
 const client = algoliasearch(process.env.ALGOLIA_ID, process.env.ALGOLIA_API_KEY);
 const index = client.initIndex('freelancer');
 
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
+console.log();
+
 // ObjectID field required
 const insertFreelance = async (req, res) => {
     let freelance = req.body._doc ? req.body._doc : req.body;
-    freelance.objectID = freelance._id.toString();
-    freelance.url = "user/" + freelance._id;
+    freelance.objectID = getRandomInt(30000000).toString();
+    freelance.url = "user/" + freelance.objectID ;
     index.deleteObject(freelance.objectID, (err, content) => {
         console.log(err, content);
         index.saveObjects([freelance])
