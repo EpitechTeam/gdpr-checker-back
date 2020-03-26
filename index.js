@@ -3,19 +3,19 @@ const http = require('http');
 const socketIO = require('socket.io');
 const puppeteer = require('puppeteer');
 
-
-const userRouter = require('./src/routers/user')
-const freelanceRouter = require('./src/routers/freelance')
-const missionRouter = require('./src/routers/mission')
-const ownerRouter = require('./src/routers/owner')
-const stripeRouter = require('./src/routers/stripe')
-const houseRouter = require('./src/routers/house')
+const userRouter = require('./src/routers/user');
+const freelanceRouter = require('./src/routers/freelance');
+const missionRouter = require('./src/routers/mission');
+const ownerRouter = require('./src/routers/owner');
+const stripeRouter = require('./src/routers/stripe');
+const houseRouter = require('./src/routers/house');
 const fileUpload = require('express-fileupload');
 require('dotenv').config();
 require('./src/db/db');
-const compression = require('compression')
-const bodyParser = require("body-parser")
-const morgan = require("morgan")
+
+const compression = require('compression');
+const bodyParser = require("body-parser");
+const morgan = require("morgan");
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
