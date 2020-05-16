@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const puppeteer = require('puppeteer');
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 const fileUpload = require('express-fileupload');
 require('dotenv').config();
@@ -149,7 +149,7 @@ app.post('/checksite', async function (req, res) {
             } catch (e) {
                 return {
                     info: {e},
-                    tests:  {}
+                    tests: {}
                 }
 
             }
@@ -162,7 +162,7 @@ app.post('/checksite', async function (req, res) {
             $('a:not([rel="nofollow"])').hide();
         });
         console.log("crowling complete!")
-        await  page.waitFor(1000);
+        await page.waitFor(1000);
         const elementHandle = await page.$('.row > .content-block');
 
         const bounds = await elementHandle.boundingBox();
@@ -175,12 +175,12 @@ app.post('/checksite', async function (req, res) {
         });
 
         const name = uuidv4();
-        const imageRes = await elementHandle.screenshot({path: __dirname + '/data/' + name +'.png'});
+        const imageRes = await elementHandle.screenshot({path: __dirname + '/data/' + name + '.png'});
         await browser.close();
         res.status(200).send({result, url: process.env.UPLOAD_HOST + "/file/" + name + ".png"});
     } catch (e) {
         console.log("BOT ERROR: ", e);
-        res.status(400).send(e);
+        res.status(400).send({"ERROR_BOT": Object.create(e, {})});
         await browser.close();
     }
 });
