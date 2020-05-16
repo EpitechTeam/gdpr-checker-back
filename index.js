@@ -67,6 +67,7 @@ app.post('/checksite', async function (req, res) {
 
     try {
         const page = (await browser.pages())[0];
+        await page.setDefaultNavigationTimeout(0);
         const userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36";
         await page.setUserAgent(userAgent);
         await page.setRequestInterception(true);
