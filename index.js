@@ -163,7 +163,7 @@ app.post('/checksite', async function (req, res) {
             $('a:not([rel="nofollow"])').hide();
         });
         console.log("crowling complete!")
-        await page.waitFor(1000);
+        await page.waitFor(2000);
         const elementHandle = await page.$('.row > .content-block');
 
         const bounds = await elementHandle.boundingBox();
@@ -175,7 +175,8 @@ app.post('/checksite', async function (req, res) {
             height: 3198,
         });
 
-        const name = uuidv4();
+        const name = await uuidv4();
+        await page.waitFor(2000);
         const imageRes = await elementHandle.screenshot({path: __dirname + '/data/' + name + '.png'});
         await browser.close();
         res.status(200).send({result, url: process.env.UPLOAD_HOST + "/file/" + name + ".png"});
