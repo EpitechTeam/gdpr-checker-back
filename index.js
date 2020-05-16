@@ -56,7 +56,7 @@ app.post('/checksite', async function (req, res) {
     req.setTimeout(0); // no timeout
     const browser = await puppeteer.launch({
         defaultViewport: null,
-        headless: false,
+        headless: true,
         args: ['--no-sandbox',
             '--disable-setuid-sandbox',
             '--enable-logging', '--v=1',
