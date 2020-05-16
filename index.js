@@ -154,12 +154,14 @@ app.post('/checksite', async function (req, res) {
             }
 
         });
-        await page.waitFor('.content-block');
-        await page.waitFor(12000);
+        await page.waitForResponse(response => {
+            return response.request().url() === "https://2gdpr.com/static/report-partok.svg";
+        });
         await page.evaluate(() => {
             $('a:not([rel="nofollow"])').hide();
         });
-
+        console.log("crowling complete!")
+        await  page.waitFor(1000);
         const elementHandle = await page.$('.row > .content-block');
 
         const bounds = await elementHandle.boundingBox();
@@ -194,7 +196,7 @@ const port = process.env.PORT
 
 server.listen(port, () =>
     console.log(
-        `Server EIP-V3 started! Listening on port ${port}. Timestamp: ${Date.now()}`
+        `Server Gdpr-checker started! Listening on port ${port}. Timestamp: ${Date.now()}`
     )
 );
 
