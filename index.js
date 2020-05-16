@@ -165,7 +165,7 @@ app.post('/checksite', async function (req, res) {
 
         const imageRes = await elementHandle.screenshot({path: __dirname + '/data/code.png'});
         await browser.close();
-        res.status(200).send({result, url: "http://localhost:9090/file/code.png"});
+        res.status(200).send({result, url: process.env.UPLOAD_HOST + "/file/code.png"});
     } catch (e) {
         console.log("BOT ERROR: ", e);
         res.status(400).send(e);
