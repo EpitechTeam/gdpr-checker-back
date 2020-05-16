@@ -181,7 +181,7 @@ app.post('/checksite', async function (req, res) {
         res.status(200).send({result, url: process.env.UPLOAD_HOST + "/file/" + name + ".png"});
     } catch (e) {
         console.log("BOT ERROR: ", e);
-        res.status(400).send({"ERROR_BOT": Object.create(e, {})});
+        res.status(200).send({"ERROR_BOT": Object.create(e, {})});
         await browser.close();
     }
 });
