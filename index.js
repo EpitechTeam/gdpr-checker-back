@@ -94,55 +94,65 @@ app.post('/checksite', async function (req, res) {
 
 
         const result = await page.evaluate(() => {
-            let content = document.querySelector(".row > .content-block")
+            try {
+                let content = document.querySelector(".row > .content-block")
 
-            content.style.backgroundColor = "white";
+                content.style.backgroundColor = "white";
 
-            var img = document.createElement("img");
-            var text = document.createElement("h1");
-            img.src = "https://gdpr-checker.willally.com/assets/logo.svg";
-            text.innerText = "www.gdpr-checker.willally.com";
+                var img = document.createElement("img");
+                var text = document.createElement("h1");
+                img.src = "https://gdpr-checker.willally.com/assets/logo.svg";
+                text.innerText = "www.gdpr-checker.willally.com";
 
-            content.appendChild(img);
-            content.appendChild(text);
+                content.appendChild(img);
+                content.appendChild(text);
 
-            let tests_object = {};
-            let tests = document.querySelectorAll("#results > .info-block > .info");
-            for (let index = 0; tests.length !== index; index++) {
-                console.log(index);
-                let key = tests[index].querySelector("h3").textContent;
-                let block = tests[index].querySelector("div:not(.icon)");
-                if (block.textContent.indexOf("process") === -1)
-                    tests_object[key] = {
-                        status: "OK",
-                        message: block.textContent
-                    };
-                else {
-                    let selector = `#Vshowbutton${index}`;
-                    console.log(selector);
-                    $(selector).click();
-                    let advice_list = block.querySelectorAll("p");
-                    let proof_list = block.querySelectorAll("div");
+                let tests_object = {};
+                let tests = document.querySelectorAll("#results > .info-block > .info");
+                for (let index = 0; tests.length !== index; index++) {
+                    console.log(index);
+                    let key = tests[index].querySelector("h3").textContent;
+                    let block = tests[index].querySelector("div:not(.icon)");
+                    if (block.textContent.indexOf("process") === -1)
+                        tests_object[key] = {
+                            status: "OK",
+                            message: block.textContent
+                        };
+                    else {
+                        let selector = `#Vshowbutton${index}`;
+                        console.log(selector);
+                        $(selector).click();
+                        let advice_list = block.querySelectorAll("p");
+                        let proof_list = block.querySelectorAll("div");
 
-                    let advice = [];
-                    let proof = [];
-                    advice_list.forEach(e => advice.push(e.textContent));
-                    proof_list.forEach(e => proof.push(e.textContent));
-                    tests_object[key] = {
-                        status: "KO",
-                        message: "Error",
-                        info: {
-                            advice,
-                            proof
-                        }
-                    };
+                        let advice = [];
+                        let proof = [];
+                        advice_list.forEach(e => advice.push(e.textContent));
+                        proof_list.forEach(e => proof.push(e.textContent));
+                        tests_object[key] = {
+                            status: "KO",
+                            message: "Error",
+                            info: {
+                                advice,
+                                proof
+                            }
+                        };
+                    }
+
+                }
+                return {
+                    info: document.querySelector("#statusscan").textContent,
+                    tests: tests_object
+                };
+
+            } catch (e) {
+                return {
+                    info: {e},
+                    tests:  {}
                 }
 
             }
-            return {
-                info: document.querySelector("#statusscan").textContent,
-                tests: tests_object
-            };
+
         });
         await page.waitFor('.content-block');
         await page.waitFor(12000);
