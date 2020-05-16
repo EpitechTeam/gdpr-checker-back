@@ -3,12 +3,7 @@ const http = require('http');
 const socketIO = require('socket.io');
 const puppeteer = require('puppeteer');
 
-const userRouter = require('./src/routers/user');
-const freelanceRouter = require('./src/routers/freelance');
-const missionRouter = require('./src/routers/mission');
-const ownerRouter = require('./src/routers/owner');
-const stripeRouter = require('./src/routers/stripe');
-const houseRouter = require('./src/routers/house');
+
 const fileUpload = require('express-fileupload');
 require('dotenv').config();
 require('./src/db/db');
@@ -43,13 +38,6 @@ app.use((req, res, next) => {
     next()
 });
 
-app.use("/", userRouter);
-app.use("/", freelanceRouter);
-app.use("/", missionRouter);
-app.use("/", ownerRouter);
-app.use("/", stripeRouter);
-app.use("/", houseRouter);
-
 // default options
 app.use(fileUpload());
 app.post('/upload', function (req, res) {
@@ -69,7 +57,7 @@ app.post('/upload', function (req, res) {
 app.post('/checksite', async function (req, res) {
     const browser = await puppeteer.launch({
         defaultViewport: null,
-        headless: true,
+        headless: false,
         args: ['--no-sandbox',
             '--disable-setuid-sandbox',
             '--enable-logging', '--v=1',
@@ -80,13 +68,12 @@ app.post('/checksite', async function (req, res) {
 
 
     try {
-
         const page = (await browser.pages())[0];
         const userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36";
         await page.setUserAgent(userAgent);
         await page.setRequestInterception(true);
         page.on('request', request => {
-            if (['image', 'font'].indexOf(request.resourceType()) !== -1) {
+            if (['lol'].indexOf(request.resourceType()) !== -1) {
                 request.abort();
                 return;
             }
@@ -100,12 +87,27 @@ app.post('/checksite', async function (req, res) {
         });
 
         await page.goto(url);
-        await page.waitFor(5000);
+        await page.waitFor('[name="site"]');
         await page.type('[name="site"]', site); // Types instantly
+        await page.waitFor('[type="submit"]');
         await page.click('[type="submit"]'); // Types instantly
-        await page.waitFor(10000);
+        await page.waitFor(".row > .content-block");
+        await page.waitFor("#results > .info-block > .info");
+
 
         const result = await page.evaluate(() => {
+            let content = document.querySelector(".row > .content-block")
+
+            content.style.backgroundColor = "white";
+
+            var img = document.createElement("img");
+            var text = document.createElement("h1");
+            img.src = "https://gdpr-checker.willally.com/assets/logo.svg";
+            text.innerText = "www.gdpr-checker.willally.com";
+
+            content.appendChild(img);
+            content.appendChild(text);
+
             let tests_object = {};
             let tests = document.querySelectorAll("#results > .info-block > .info");
             for (let index = 0; tests.length !== index; index++) {
@@ -144,9 +146,26 @@ app.post('/checksite', async function (req, res) {
                 tests: tests_object
             };
         });
-        await page.waitFor(5000);
+        await page.waitFor('.content-block');
+        await page.waitFor(12000);
+        await page.evaluate(() => {
+            $('a:not([rel="nofollow"])').hide();
+        });
+
+        const elementHandle = await page.$('.row > .content-block');
+
+        const bounds = await elementHandle.boundingBox();
+        const initial = page.viewport();
+
+        console.log(bounds, initial);
+        await page.setViewport({
+            width: 800,
+            height: 3198,
+        });
+
+        const imageRes = await elementHandle.screenshot({path: __dirname + '/data/code.png'});
         await browser.close();
-        res.status(200).send({result});
+        res.status(200).send({result, url: "http://localhost:9090/file/code.png"});
     } catch (e) {
         console.log("BOT ERROR: ", e);
         res.status(400).send(e);
@@ -159,7 +178,7 @@ console.log(__dirname + "/" + process.env.UPLOAD_PATH);
 app.use('/file', express.static(__dirname + "/" + process.env.UPLOAD_PATH + "/"));
 
 app.get('/', (req, res) => {
-    res.json("EIP API V1.0")
+    res.json("GDPR CHECKER V1.0")
 })
 
 const port = process.env.PORT
@@ -169,70 +188,4 @@ server.listen(port, () =>
         `Server EIP-V3 started! Listening on port ${port}. Timestamp: ${Date.now()}`
     )
 );
-
-const {
-    addUser,
-    deleteUser,
-    getUser,
-    getUsersInRoom,
-} = require('./src/services/socket/socket');
-
-var users = [];
-
-io.on('connection', socket => {
-
-    console.log(
-        `A new client is connected to chat server! Socket is: ${socket.id}.`,
-        Date.now()
-    );
-
-    socket.on('join', ({name, room}, callback) => {
-        const {error, user} = addUser({id: socket.id, name, room}, users);
-
-        if (error) {
-            return callback(error);
-        }
-
-        socket.emit('message', {
-            user: 'Team conciergerie online',
-            text: `Bonjour, ${user.name} !`,
-        });
-        socket.broadcast.to(user.room).emit('message', {
-            user: 'Team conciergerie online',
-            text: `${user.name} est connecté.`,
-        });
-
-        socket.join(user.room);
-    });
-
-    socket.on('sendMessage', (message, callback) => {
-        console.log(users);
-        let result = getUser(socket.id, users);
-        console.log(result)
-        const user = result.user;
-        users = result.users;
-        io.to(user.room).emit('message', {user: user.name, text: message});
-
-        callback();
-    });
-
-    socket.on('disconnect', () => {
-        console.log(`User on socket ${socket.id} had disconnected from the server`);
-        const result = deleteUser(socket.id, users);
-        console.log(result);
-        const user = result.user;
-        users = result.users;
-
-        if (user) {
-            io.to(user.room).emit('message', {
-                user: 'Team conciergerie online',
-                text: `${user.name} quitte le chat.`,
-            });
-        }
-    });
-});
-
-process.on('uncaughtException', err => {
-    console.log(err)
-})
 
