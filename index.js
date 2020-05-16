@@ -1,8 +1,7 @@
-const express = require('express')
+const express = require('express');
 const http = require('http');
-const socketIO = require('socket.io');
 const puppeteer = require('puppeteer');
-
+const { v4: uuidv4 } = require('uuid');
 
 const fileUpload = require('express-fileupload');
 require('dotenv').config();
@@ -13,7 +12,6 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
 
 
 app.use(
@@ -163,9 +161,10 @@ app.post('/checksite', async function (req, res) {
             height: 3198,
         });
 
-        const imageRes = await elementHandle.screenshot({path: __dirname + '/data/code.png'});
+        const name = uuidv4();
+        const imageRes = await elementHandle.screenshot({path: __dirname + '/data/' + name +'.png'});
         await browser.close();
-        res.status(200).send({result, url: process.env.UPLOAD_HOST + "/file/code.png"});
+        res.status(200).send({result, url: process.env.UPLOAD_HOST + "/file/" + name + ".png"});
     } catch (e) {
         console.log("BOT ERROR: ", e);
         res.status(400).send(e);
