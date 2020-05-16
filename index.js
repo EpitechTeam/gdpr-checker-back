@@ -53,6 +53,7 @@ app.post('/upload', function (req, res) {
 });
 
 app.post('/checksite', async function (req, res) {
+    req.setTimeout(0); // no timeout
     const browser = await puppeteer.launch({
         defaultViewport: null,
         headless: false,
