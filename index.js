@@ -73,14 +73,6 @@ app.post('/checksite', async function (req, res) {
         await page.setUserAgent(userAgent);
         await page.setRequestInterception(true);
         page.on('request', request => {
-            if (['lol'].indexOf(request.resourceType()) !== -1) {
-                request.abort();
-                return;
-            }
-            if (!request.isNavigationRequest()) {
-                request.continue();
-                return;
-            }
             const headers = request.headers();
             headers['Referer'] = 'https://app2.bankin.com/';
             request.continue({headers});
@@ -91,9 +83,15 @@ app.post('/checksite', async function (req, res) {
         await page.type('[name="site"]', site); // Types instantly
         await page.waitFor('[type="submit"]');
         await page.click('[type="submit"]'); // Types instantly
-        await page.waitFor(".row > .content-block");
-        await page.waitFor("#results > .info-block > .info");
+        await page.waitForResponse(response => {
+            return response.request().url() === "https://2gdpr.com/static/report-partok.svg";
+        });
 
+        await page.evaluate(() => {
+            $('a:not([rel="nofollow"])').hide();
+        });
+        console.log("crowling complete!")
+        await page.waitFor(1000);
 
         const result = await page.evaluate(() => {
             try {
@@ -156,14 +154,7 @@ app.post('/checksite', async function (req, res) {
             }
 
         });
-        await page.waitForResponse(response => {
-            return response.request().url() === "https://2gdpr.com/static/report-partok.svg";
-        });
-        await page.evaluate(() => {
-            $('a:not([rel="nofollow"])').hide();
-        });
-        console.log("crowling complete!")
-        await page.waitFor(2000);
+
         const elementHandle = await page.$('.row > .content-block');
 
         const bounds = await elementHandle.boundingBox();
