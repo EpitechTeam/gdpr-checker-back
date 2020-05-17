@@ -97,6 +97,14 @@ app.post('/checksite', async function (req, res) {
             img.src = "https://i.ibb.co/fN4DFB4/facebook-cover-photo-2.png";
             img.style.width = '100%';
             content.prepend(img);
+
+            try {
+                let selector = document.querySelectorAll("[id^=Vshowbutton]");
+                for (let index = 0; selector.length !== index; index++) {
+                    $(selector[index]).click();
+                }
+            } catch (e) {
+            }
             return {};
         });
 
@@ -106,6 +114,7 @@ app.post('/checksite', async function (req, res) {
             $('[style="margin-left:67px; margin-top:5px;"]').hide();
             $('[style="margin-left:67px; margin-top:10px;"]').hide();
             $('[class="newtab"]').hide();
+            $('[class=".icon-question"]').hide();
         });
         await page.setViewport({
             width: 1000,
