@@ -69,6 +69,7 @@ app.post('/checksite', async function (req, res) {
     try {
         const page = (await browser.pages())[0];
         await page.setDefaultNavigationTimeout(0);
+        await page.setDefaultTimeout(0);
         const userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36";
         await page.setUserAgent(userAgent);
         await page.setRequestInterception(true);
@@ -78,7 +79,7 @@ app.post('/checksite', async function (req, res) {
             request.continue({headers});
         });
 
-        await page.goto(url);
+        await page.goto(url,  {waitUntil: 'load', timeout: 0});
         await page.waitFor('[name="site"]');
         await page.type('[name="site"]', site); // Types instantly
         await page.waitFor('[type="submit"]');
