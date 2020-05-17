@@ -89,6 +89,7 @@ app.post('/checksite', async function (req, res) {
 
         await page.evaluate(() => {
             $('a:not([rel="nofollow"])').hide();
+            $('[id^="Vhidebutton"]').hide();
         });
         console.log("crowling complete!")
         await page.waitFor(1000);
