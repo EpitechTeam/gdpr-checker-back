@@ -56,7 +56,7 @@ app.post('/checksite', async function (req, res) {
     req.setTimeout(0); // no timeout
     const browser = await puppeteer.launch({
         defaultViewport: null,
-        headless: true,
+        headless: false,
         args: ['--no-sandbox',
             '--disable-setuid-sandbox',
             '--enable-logging', '--v=1',
@@ -85,7 +85,19 @@ app.post('/checksite', async function (req, res) {
         await page.waitFor('[type="submit"]');
         await page.click('[type="submit"]'); // Types instantly
         await page.waitForResponse(response => {
-            return response.request().url().indexOf("https://2gdpr.com/static/report-") !== -1;
+            return response.request().url().indexOf("https://2gdpr.com/static/icon-question.png") !== -1;
+        });
+
+        console.log("crowling complete!");
+        const result = await page.evaluate(() => {
+            let content = document.querySelector(".row > .content-block");
+            content.style.backgroundColor = "white";
+            content.style.padding = "0px";
+            let img = document.createElement("img");
+            img.src = "https://i.ibb.co/fN4DFB4/facebook-cover-photo-2.png";
+            img.style.width = '100%';
+            content.prepend(img);
+            return {};
         });
 
         await page.evaluate(() => {
@@ -93,85 +105,16 @@ app.post('/checksite', async function (req, res) {
             $('[id^="Vhidebutton"]').hide();
             $('[style="margin-left:67px; margin-top:5px;"]').hide();
             $('[style="margin-left:67px; margin-top:10px;"]').hide();
+            $('[class="newtab"]').hide();
         });
-        console.log("crowling complete!")
+        await page.setViewport({
+            width: 1000,
+            height: 3398,
+        });
         await page.waitFor(1000);
 
-        const result = await page.evaluate(() => {
-            try {
-                let content = document.querySelector(".row > .content-block")
-
-                content.style.backgroundColor = "white";
-
-                var img = document.createElement("img");
-                var text = document.createElement("h1");
-                img.src = "https://gdpr-checker.willally.com/assets/logo.svg";
-                text.innerText = "www.gdpr-checker.willally.com";
-
-                content.appendChild(img);
-                content.appendChild(text);
-
-                let tests_object = {};
-                let tests = document.querySelectorAll("#results > .info-block > .info");
-                for (let index = 0; tests.length !== index; index++) {
-                    console.log(index);
-                    let key = tests[index].querySelector("h3").textContent;
-                    let block = tests[index].querySelector("div:not(.icon)");
-                    if (block.textContent.indexOf("process") === -1)
-                        tests_object[key] = {
-                            status: "OK",
-                            message: block.textContent
-                        };
-                    else {
-                        let selector = `#Vshowbutton${index}`;
-                        console.log(selector);
-                        $(selector).click();
-                        let advice_list = block.querySelectorAll("p");
-                        let proof_list = block.querySelectorAll("div");
-
-                        let advice = [];
-                        let proof = [];
-                        advice_list.forEach(e => advice.push(e.textContent));
-                        proof_list.forEach(e => proof.push(e.textContent));
-                        tests_object[key] = {
-                            status: "KO",
-                            message: "Error",
-                            info: {
-                                advice,
-                                proof
-                            }
-                        };
-                    }
-
-                }
-                return {
-                    info: document.querySelector("#statusscan").textContent,
-                    tests: tests_object
-                };
-
-            } catch (e) {
-                return {
-                    info: {e},
-                    tests: {}
-                }
-
-            }
-
-        });
-
-        const elementHandle = await page.$('.row > .content-block');
-
-        const bounds = await elementHandle.boundingBox();
-        const initial = page.viewport();
-
-        console.log(bounds, initial);
-        await page.setViewport({
-            width: 800,
-            height: 3198,
-        });
-
         const name = await uuidv4();
-        await page.waitFor(2000);
+        const elementHandle = await page.$('.row > .content-block');
         const imageRes = await elementHandle.screenshot({path: __dirname + '/data/' + name + '.png'});
         await browser.close();
         res.status(200).send({result, url: process.env.UPLOAD_HOST + "/file/" + name + ".png"});
