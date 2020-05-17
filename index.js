@@ -84,7 +84,7 @@ app.post('/checksite', async function (req, res) {
         await page.waitFor('[type="submit"]');
         await page.click('[type="submit"]'); // Types instantly
         await page.waitForResponse(response => {
-            return response.request().url() === "https://2gdpr.com/static/report-partok.svg";
+            return response.request().url().indexOf("https://2gdpr.com/static/report-") !== -1;
         });
 
         await page.evaluate(() => {
